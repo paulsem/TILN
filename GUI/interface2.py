@@ -21,7 +21,6 @@ class TextApp:
         # setam fontul global
         self.gui.option_add("*Font", ("Consolas", "13"))
 
-        # in tkinter la butoane width si height se masoara in caractere deci
         # ar fi mai bine sa lasam butonul sa-si modifice dimensiunea in functie de font
         self.browse = Button(self.gui, text="Browse", command=self.file_dialog)
         self.browse.grid(row=0, column=0, pady=5, padx=5, sticky="nw")
