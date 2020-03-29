@@ -1,42 +1,173 @@
 import tkinter
 from tkinter import *
 from tkinter import filedialog
+from tkinter.ttk import Separator
+from xml.etree import ElementTree
+from PARSARE import proiect
 
 
-# initializarea ferestrei main
+class TextApp(Tk):
 
-class TextApp:
+    APPLICATION_TITLE = "Time recognizer"
+    GLOBAL_FONT = ("Consolas", 11)
+    VIEW_BACKGROUND = "lightblue"
+    CONTENT_FRAME_PADX = 50
+    CONTENT_FRAME_PADY = 4
+    CONTENT_FRAME_INTERN_PADX = 4
+    CONTENT_FRAME_INTERN_PADY = 4
+    VISIBLE_LABEL_FONT = ("Consolas", 12)
+    HIDDEN_LABEL_FONT = ("Consolas", 6)
+
     def __init__(self):
-        """
-        gui fereastra principala
-        """
-        self.gui = Tk(className="TILN - Recognize time")  # titlul aplicatiei
-        self.gui.geometry("500x500")  # size
+        super().__init__()
+        self.title(TextApp.APPLICATION_TITLE)
+        self.state("zoomed")
+        self.option_add("*Font", TextApp.GLOBAL_FONT)
+        self.toolbar = Toolbar(self)
+        self.toolbar.grid(row=0, column=0, sticky="we", padx=5, pady=5)
+        Separator(self).grid(row=1, column=0, pady=5, padx=5, sticky="we")
+        self.view = View(self)
+        self.view.grid(row=2, column=0, pady=5, padx=5, sticky="nswe")
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.mainloop()
 
-        """
-        butonul pentru browse 
-        """
-        self.browse = Button(self.gui, text="Browse", width=15, height=2, command=self.file_dialog)
-        self.browse.grid(row=0, column=0)
+    def display(self, root):
+        frame = self.view.frame
+        frame.display_node(root, do_grid=False)
 
-        """
-        frame pentru afisare date timp
-        """
-        self.frame_time = Frame(self.gui, width=290, height=400, background="white")
-        self.frame_time.place(x=200, y=10)
 
-        self.gui.mainloop()
+class ContentFrame(Frame):
 
-    """
-    In functia asta apelam file dialog
-    * aux.name = pathul 
-    * w = label unde afisam pathul
-    """
+    def __init__(self, master, *args, **kwargs):
+        Frame.__init__(self, master, *args, **kwargs)
+        self.configure(bg=TextApp.VIEW_BACKGROUND)
+        self.visible = True
+        self.header_frame, self.footer_frame, self.text_frame, self.contents = [None for _ in range(4)]
 
-    def file_dialog(self):
-        aux = tkinter.filedialog.askopenfile(mode="r")
-        path = Label(self.gui, text=aux.name)
-        path.grid(row=1, column=0)
+    def display_node(self, node, padx=TextApp.CONTENT_FRAME_PADX, pady=TextApp.CONTENT_FRAME_PADY, do_grid=True):
+        self.header_frame = HeaderFrame(self, node)
+        text = node.text
+        stripped_text = text.strip() if text else text
+        self.text_frame = TextFrame(self, text) if text and stripped_text else None
+        self.contents = []
+        if len(node):
+            for child in node:
+                frame = ContentFrame(self)
+                frame.display_node(child)
+                self.contents.append(frame)
+        self.footer_frame = FooterFrame(self, node)
+        if do_grid:
+            self.grid(row=len(self.master.winfo_children()), column=0, padx=padx, pady=pady, sticky="nw")
+
+    def collapse(self):
+        if self.visible:
+            for child in self.winfo_children()[1:]:
+                child.grid_remove()
+            for child in self.header_frame.winfo_children():
+                child.configure(font=TextApp.HIDDEN_LABEL_FONT)
+        else:
+            for child in self.winfo_children()[1:]:
+                child.grid()
+            for child in self.header_frame.winfo_children():
+                child.configure(font=TextApp.VISIBLE_LABEL_FONT)
+        self.visible = not self.visible
+
+
+class HeaderFrame(Frame):
+
+    def __init__(self, master, node, *args, **kwargs):
+        Frame.__init__(self, master, *args, **kwargs)
+        self.configure(background=TextApp.VIEW_BACKGROUND)
+        tag, attributes = node.tag, node.attrib
+        font = TextApp.VISIBLE_LABEL_FONT
+        padx, pady = TextApp.CONTENT_FRAME_INTERN_PADX, TextApp.CONTENT_FRAME_INTERN_PADY
+        label = Label(self, text=f"<{tag}", font=font)
+        label.grid(row=0, column=1, sticky="nw", padx=padx, pady=pady)
+        menu = Menu(label, tearoff=0)
+        menu.add_command(label="Collapse", command=self.master.collapse)
+        label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+        if not attributes:
+            label.configure(text=label.cget("text") + ">")
+        for attribute in attributes:
+            label = Label(self, text=f"{attribute}={node.attrib[attribute]}", font=font)
+            label.grid(row=0, column=len(self.winfo_children()), sticky="nw", padx=padx, pady=pady)
+            label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+        if attributes:
+            label = Label(self, text=">", font=font)
+            label.grid(row=0, column=len(self.winfo_children()), sticky="nw", padx=padx, pady=pady)
+            label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+        self.grid(row=0, column=0, sticky="nw")
+
+
+class FooterFrame(Frame):
+
+    def __init__(self, master, node, *args, **kwargs):
+        Frame.__init__(self, master, *args, **kwargs)
+        Label(self, text=f"</{node.tag}>", font=TextApp.VISIBLE_LABEL_FONT).grid(row=0, column=0, sticky="nw")
+        self.grid(row=len(self.master.winfo_children()), column=0, sticky="nw", padx=TextApp.CONTENT_FRAME_INTERN_PADX,
+                  pady=TextApp.CONTENT_FRAME_INTERN_PADY)
+
+
+class TextFrame(Frame):
+
+    def __init__(self, master, text, *args, **kwargs):
+        Frame.__init__(self, master, *args, **kwargs)
+
+        Label(self, text=text, font=TextApp.VISIBLE_LABEL_FONT).grid(row=0, column=1, sticky="nw",
+                                                                     padx=TextApp.CONTENT_FRAME_INTERN_PADX,
+                                                                     pady=TextApp.CONTENT_FRAME_INTERN_PADY)
+        row = len(master.winfo_children())
+        self.grid(row=row, column=0, sticky="nw",
+                  padx=TextApp.CONTENT_FRAME_PADX, pady=TextApp.CONTENT_FRAME_INTERN_PADY)
+
+
+class Toolbar(Frame):
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.master = master
+        Button(self, text="Browse", command=self.browse).grid(row=0, column=0)
+
+    def browse(self):
+        filename = tkinter.filedialog.askopenfilename(filetypes=[("txt files", "*.txt")])
+        if filename:
+            self.master.title(f"{TextApp.APPLICATION_TITLE} - {filename}")
+            proiect.setare_input(filename)
+            proiect.rulare(False)
+            with open(r"..\..\output\exemplu.xml") as xml_file:
+                tree = ElementTree.parse(xml_file)
+                self.master.display(tree.getroot())
+
+
+class View(Frame):
+
+    def __init__(self, master):
+        super().__init__(master)
+        canvas = Canvas(self, bg=TextApp.VIEW_BACKGROUND, bd=0, highlightthickness=0, relief='ridge')
+        self.canvas = canvas
+        self.frame = ContentFrame(canvas)
+        y_scroll = Scrollbar(self, command=canvas.yview)
+        x_scroll = Scrollbar(self, command=canvas.xview, orient=HORIZONTAL)
+        canvas.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set, scrollregion=canvas.bbox(ALL))
+        canvas.grid(row=0, column=0, sticky="nswe")
+        y_scroll.grid(row=0, column=1, sticky="ns")
+        x_scroll.grid(row=1, column=0, sticky="we")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        def scroll(event):
+            start, end = canvas.yview()
+            if start != 0 or end != 1:
+                canvas.yview_scroll(-event.delta // 100, "units")
+                return
+            start, end = canvas.xview()
+            if start != 0 or end != 1:
+                canvas.xview_scroll(-event.delta // 100, "units")
+
+        canvas.bind_all("<MouseWheel>", scroll)
+        self.frame.bind("<Configure>", lambda _: canvas.configure(scrollregion=canvas.bbox(ALL)))
+        canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
 
 my_gui = TextApp()
