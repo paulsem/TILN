@@ -278,7 +278,7 @@ def rulare(debug=False):
         print()
         print("Dictionar:\t", dictionar)
 
-    with open("dic_export", "w") as fd:
+    with open("dict_export", "w") as fd:
         json.dump(dictionar, fd)
 
     xml_project.setare_input(input_file)

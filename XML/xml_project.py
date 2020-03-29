@@ -11,7 +11,7 @@ def setare_input(input_file_tmp):
 
 
 def rulare():
-    with open("dic_export", "r") as fd:
+    with open("dict_export", "r") as fd:
         dictionar = json.load(fd)
     # print("Dictionar :  ", dictionar)
 
