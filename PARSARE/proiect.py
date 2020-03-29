@@ -1,5 +1,12 @@
 import json
 import re
+import sys
+
+sys.path.append('../')
+from XML import xml_project
+
+input_file = ""
+dictionar = {}
 
 
 def convertor(num):
@@ -221,57 +228,63 @@ def parsare_luni(text, luni):
     return luni_timp
 
 
-if __name__ == '__main__':
-    dictionar = {}
-    input_file = "extract.txt"
+def adaugare_dict(valoare, tag):
+    global dictionar
+    if valoare:
+        try:
+            [dictionar[tag].append(x) for x in valoare]
+        except:
+            dictionar[tag] = valoare.copy()
 
+
+def setare_input(input_file_tmp):
+    global input_file
+    input_file = input_file_tmp
+
+
+def rulare(debug=False):
     text = importare_text(input_file)
     dict_lunile, dict_timp_simplu, dict_data_simplu, dict_timp_complex, dict_data_complex = importare_dictionar()
 
-    timp_cifre, data_cifre = parsare_cifre(text)
-    timp_simplu, data_simplu = parsare_simplu(text, dict_timp_simplu, dict_data_simplu)
-    timp_complex, data_complex = parsare_complex(text, dict_timp_complex, dict_data_complex)
-    lunile = parsare_luni(text, dict_lunile)
-    lunile2 = parsare_cifre_text(text, dict_lunile)
+    timp_cifre, data_cifre = parsare_cifre(text)  # 15:30,  02.04.1999
+    timp_simplu, data_simplu = parsare_simplu(text, dict_timp_simplu, dict_data_simplu)  # acuma, marti ieri
+    timp_complex, data_complex = parsare_complex(text, dict_timp_complex, dict_data_complex)  # 7 ore, 20 de luni
+    lunile = parsare_luni(text, dict_lunile)  # luna mai luna iunie
+    lunile2 = parsare_cifre_text(text, dict_lunile)  # 25 aprilie 10 iulie
+    timp_text, data_text = lista_numere(text, dict_timp_complex, dict_data_complex)  # doua ore sapte luni
 
-    timp_text, data_text = lista_numere(text, dict_timp_complex, dict_data_complex)
+    adaugare_dict(timp_cifre, "ORA")
+    adaugare_dict(data_cifre, "DATA")
+    adaugare_dict(timp_simplu, "TIMP_ACTUAL")
+    adaugare_dict(data_simplu, "ZIUA")
+    adaugare_dict(timp_complex, "DURATA")
+    adaugare_dict(data_complex, "DURATA")
+    adaugare_dict(lunile, "LUNA")
+    adaugare_dict(lunile2, "LUNA")
+    adaugare_dict(timp_text, "DURATA")
+    adaugare_dict(data_text, "DURATA")
 
-    dictionar["timp"] = timp_cifre.copy()
-    dictionar["data"] = data_cifre.copy()
-
-    if timp_simplu:
-        [dictionar["timp"].append(x) for x in timp_simplu]
-    if data_simplu:
-        [dictionar["data"].append(x) for x in data_simplu]
-
-    if timp_complex:
-        [dictionar["timp"].append(x) for x in timp_complex]
-    if data_complex:
-        [dictionar["data"].append(x) for x in data_complex]
-
-    if lunile:
-        [dictionar["data"].append(x) for x in lunile]
-    if lunile2:
-        [dictionar["data"].append(x) for x in lunile2]
-
-    if timp_text:
-        [dictionar["timp"].append(x) for x in timp_text]
-    if data_text:
-        [dictionar["data"].append(x) for x in data_text]
-
-    # print(text)
-    print("timp_cifre:\t\t", timp_cifre)
-    print("data_cifre:\t\t", data_cifre)
-    print("timp_simplu:\t", timp_simplu)
-    print("data_simplu:\t", data_simplu)
-    print("timp_complex:\t", timp_complex)
-    print("data_complex:\t", data_complex)
-    print("Lunile:\t\t\t", lunile, lunile2)
-    print("timp_text:\t", timp_text)
-    print("data_text:\t", data_text)
-
-    print()
-    print("Dictionar:\t", dictionar)
+    if debug:
+        print(text)
+        print("timp_cifre:\t\t", timp_cifre)
+        print("data_cifre:\t\t", data_cifre)
+        print("timp_simplu:\t", timp_simplu)
+        print("data_simplu:\t", data_simplu)
+        print("timp_complex:\t", timp_complex)
+        print("data_complex:\t", data_complex)
+        print("Lunile:\t\t\t", lunile, lunile2)
+        print("timp_text:\t", timp_text)
+        print("data_text:\t", data_text)
+        print()
+        print("Dictionar:\t", dictionar)
 
     with open("dic_export", "w") as fd:
         json.dump(dictionar, fd)
+
+    xml_project.setare_input(input_file)
+    xml_project.rulare()
+
+
+if __name__ == '__main__':
+    setare_input("C:\\Users\\Valentin\\OneDrive\\Info 3.5\\TILN\\GIT\\extract.txt")
+    rulare()
