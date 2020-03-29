@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import Separator
 from xml.etree import ElementTree
+from tkinter.simpledialog import askstring
 from PARSARE import proiect
 
 
@@ -84,27 +85,54 @@ class HeaderFrame(Frame):
         padx, pady = TextApp.CONTENT_FRAME_INTERN_PADX, TextApp.CONTENT_FRAME_INTERN_PADY
         label = Label(self, text=f"<{tag}", font=font)
         label.grid(row=0, column=1, sticky="nw", padx=padx, pady=pady)
-        menu = Menu(label, tearoff=0)
-        menu.add_command(label="Collapse", command=self.master.collapse)
-        label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+        self.tag_menu = Menu(label, tearoff=0)
+        self.tag_menu.add_command(label="Collapse", command=self.master.collapse)
+
+        self.attribute_menu = Menu(label, tearoff=0)
+        self.attribute_menu.add_command(label="Edit", command=self.edit)
+        self.attribute_menu.add_command(label="Collapse", command=self.master.collapse)
+        label.bind("<Button-3>", self.right_click)
         if not attributes:
             label.configure(text=label.cget("text") + ">")
         for attribute in attributes:
-            label = Label(self, text=f"{attribute}={node.attrib[attribute]}", font=font)
+            label = Label(self, text=f"{attribute}={attributes[attribute]}", font=font)
             label.grid(row=0, column=len(self.winfo_children()), sticky="nw", padx=padx, pady=pady)
-            label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+            label.bind("<Button-3>", self.right_click)
+            label.type = attribute
+            label.value = attributes[attribute]
         if attributes:
             label = Label(self, text=">", font=font)
             label.grid(row=0, column=len(self.winfo_children()), sticky="nw", padx=padx, pady=pady)
-            label.bind("<Button-3>", lambda _: menu.tk_popup(_.x_root, _.y_root))
+            label.bind("<Button-3>", self.right_click)
         self.grid(row=0, column=0, sticky="nw")
+        self.widget = None
+
+    def right_click(self, event):
+        self.widget = event.widget
+        if hasattr(self.widget, "type"):
+            self.attribute_menu.tk_popup(event.x_root, event.y_root)
+        else:
+            self.tag_menu.tk_popup(event.x_root, event.y_root)
+
+    def edit(self):
+        label = self.widget
+        label_type, label_value = label.type, label.value
+        response = askstring("Edit", f"Change {label_type}", initialvalue=label_value,
+                             parent=self.winfo_toplevel())
+        if response:
+            label.value = response
+            if label_type != "tag text":
+                label.configure(text=f"{label_type}={response}")
+            else:
+                label.configure(text=response)
 
 
 class FooterFrame(Frame):
 
     def __init__(self, master, node, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
-        Label(self, text=f"</{node.tag}>", font=TextApp.VISIBLE_LABEL_FONT).grid(row=0, column=0, sticky="nw")
+        label = Label(self, text=f"</{node.tag}>", font=TextApp.VISIBLE_LABEL_FONT)
+        label.grid(row=0, column=0, sticky="nw")
         self.grid(row=len(self.master.winfo_children()), column=0, sticky="nw", padx=TextApp.CONTENT_FRAME_INTERN_PADX,
                   pady=TextApp.CONTENT_FRAME_INTERN_PADY)
 
@@ -114,9 +142,12 @@ class TextFrame(Frame):
     def __init__(self, master, text, *args, **kwargs):
         Frame.__init__(self, master, *args, **kwargs)
 
-        Label(self, text=text, font=TextApp.VISIBLE_LABEL_FONT).grid(row=0, column=1, sticky="nw",
-                                                                     padx=TextApp.CONTENT_FRAME_INTERN_PADX,
-                                                                     pady=TextApp.CONTENT_FRAME_INTERN_PADY)
+        label = Label(self, text=text, font=TextApp.VISIBLE_LABEL_FONT)
+        label.grid(row=0, column=1, sticky="nw", padx=TextApp.CONTENT_FRAME_INTERN_PADX,
+                   pady=TextApp.CONTENT_FRAME_INTERN_PADY)
+        label.type = "tag text"
+        label.value = text
+        label.bind("<Button-3>", self.master.header_frame.right_click)
         row = len(master.winfo_children())
         self.grid(row=row, column=0, sticky="nw",
                   padx=TextApp.CONTENT_FRAME_PADX, pady=TextApp.CONTENT_FRAME_INTERN_PADY)
