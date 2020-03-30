@@ -8,7 +8,6 @@ from TimeEx.PARSARE import proiect
 
 
 class TextApp(Tk):
-
     APPLICATION_TITLE = "Time recognizer"
     GLOBAL_FONT = ("Consolas", 11)
     VIEW_BACKGROUND = "lightblue"
