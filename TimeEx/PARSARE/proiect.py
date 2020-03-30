@@ -3,7 +3,7 @@ import re
 import sys
 
 sys.path.append('../')
-from XML import xml_project
+from TimeEx.XML import xml_project
 
 input_file = ""
 dictionar = {}
@@ -97,7 +97,7 @@ def importare_dictionar():
     ok = -2
     timp_simplu, data_simplu, timp_compus, data_compus = 0, 0, 0, 0
 
-    with open("romana.txt", "r") as fd:
+    with open("../PARSARE/romana.txt", "r") as fd:
         line = fd.readline()
         while line:
             tmp.append(line)

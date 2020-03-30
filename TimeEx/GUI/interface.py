@@ -4,7 +4,7 @@ from tkinter import filedialog
 from tkinter.ttk import Separator
 from xml.etree import ElementTree
 from tkinter.simpledialog import askstring
-from PARSARE import proiect
+from TimeEx.PARSARE import proiect
 
 
 class TextApp(Tk):
