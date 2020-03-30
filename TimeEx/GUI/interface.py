@@ -8,7 +8,6 @@ from TimeEx.PARSARE import proiect
 
 
 class TextApp(Tk):
-
     APPLICATION_TITLE = "Time recognizer"
     GLOBAL_FONT = ("Consolas", 11)
     VIEW_BACKGROUND = "lightblue"
@@ -166,7 +165,7 @@ class Toolbar(Frame):
             self.master.title(f"{TextApp.APPLICATION_TITLE} - {filename}")
             proiect.setare_input(filename)
             proiect.rulare(False)
-            with open(r"..\..\output\exemplu.xml") as xml_file:
+            with open(r"output\exemplu.xml") as xml_file:
                 tree = ElementTree.parse(xml_file)
                 self.master.display(tree.getroot())
 
@@ -201,4 +200,6 @@ class View(Frame):
         canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
 
-my_gui = TextApp()
+if __name__ == '__main__':
+    raise Exception("Run the app from main.py")
+    # my_gui = TextApp()
