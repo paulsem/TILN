@@ -29,7 +29,7 @@ def rulare():
     DOCNO = ET.SubElement(xml_doc, 'DOCNO', type='date', temporalFunction='false').text = '19980108'
 
     # DOCTYPE tag
-    DOCTYPE = ET.SubElement(xml_doc, 'DOCTYPE', SOURCE='extract.txt').text = 'Vremuri de mult apuse'
+    DOCTYPE = ET.SubElement(xml_doc, 'DOCTYPE', SOURCE='extract.txt').text = 'TimeEx'
 
     # BODY tag
     BODY = ET.SubElement(xml_doc, 'BODY')
