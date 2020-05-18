@@ -95,7 +95,8 @@ def importare_dictionar():
     ok = -2
     timp_simplu, data_simplu, timp_compus, data_compus = 0, 0, 0, 0
 
-    with open("TimeEx/PARSARE/romana.txt", "r") as fd:
+    # TimeEx/PARSARE/
+    with open("romana.txt", "r") as fd:
         line = fd.readline()
         while line:
             tmp.append(line)
@@ -276,7 +277,7 @@ def rulare(debug=False):
         print()
         print("Dictionar:\t", dictionar)
 
-    with open("tmp\dict_export", "w") as fd:
+    with open("..\\..\\tmp\\dict_export", "w") as fd:
         json.dump(dictionar, fd)
 
     xml_project.setare_input(input_file)
@@ -284,6 +285,6 @@ def rulare(debug=False):
 
 
 if __name__ == '__main__':
-    raise Exception("Run the app from main.py")
-    # setare_input("..\\..\\input\\extract.txt")
-    # rulare()
+    # raise Exception("Run the app from main.py")
+    setare_input("..\\..\\input\\extract.txt")
+    rulare()

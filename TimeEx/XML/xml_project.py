@@ -11,7 +11,7 @@ def setare_input(input_file_tmp):
 
 
 def rulare():
-    with open("tmp\dict_export", "r") as fd:
+    with open("..\\..\\tmp\\dict_export", "r") as fd:
         dictionar = json.load(fd)
     # print("Dictionar :  ", dictionar)
 
@@ -51,10 +51,10 @@ def rulare():
                     # print(ok)
 
     tree = ET.ElementTree(xml_doc)
-    tree.write('output\\exemplu.xml', encoding='UTF-8', xml_declaration=True)
+    tree.write('..\\..\\output\\exemplu.xml', encoding='UTF-8', xml_declaration=True)
 
 
 if __name__ == '__main__':
-    raise Exception("Run the app from main.py")
-    # setare_input("..\\..\\input\\extract.txt")
-    # rulare()
+    # raise Exception("Run the app from main.py")
+    setare_input("..\\..\\input\\extract.txt")
+    rulare()
