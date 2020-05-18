@@ -288,4 +288,8 @@ def rulare(debug=False):
 if __name__ == '__main__':
     # raise Exception("Run the app from main.py")
     setare_input("..\\..\\input\\extract.txt")
+
+
+
+
     rulare()
