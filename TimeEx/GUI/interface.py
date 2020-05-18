@@ -17,7 +17,7 @@ import tkinter.messagebox
 # File -> Browse : Alege fisier si extrage
 # File -> Save : Salveaza fisierul xml
 # File -> Exit : Close la aplicatie
-# Tools -> Expand all: Da expand la toate elementele colapsed
+# Tools -> Expand all: Da expand la toate elementele collapsed
 # Tools -> Attributes: Se pot alege culorile elementelor si cuvintelor in text cu anumite tipuri si 
 # se poate da toggle la visibilitatea lor
 # Tools -> Preferences: Se poate alege: background ul aplicatiei
