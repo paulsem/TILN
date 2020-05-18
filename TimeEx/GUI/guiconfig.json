@@ -1,0 +1,61 @@
+{
+    "application title": "Time recogniser",
+    "global font": [
+        "Consolas",
+        12
+    ],
+    "view background": "lightblue",
+    "visible label font": [
+        "Consolas",
+        12
+    ],
+    "collapsed label font": [
+        "Consolas",
+        8
+    ],
+    "menu font": [
+        "Consolas",
+        10
+    ],
+    "toolbar font": [
+        "Consolas",
+        9
+    ],
+    "source font": [
+        "Consolas",
+        11
+    ],
+    "label background": "lavender",
+    "label foreground": "black",
+    "content frame padx": 50,
+    "content frame pady": 4,
+    "content frame intern padx": 4,
+    "content frame intern pady": 4,
+    "wrap": "word",
+    "attributes background": [
+        {
+            "ZIUA": {
+                "highlighted": false,
+                "background": "#ff42d9"
+            }
+        },
+        {
+            "ORA": {
+                "highlighted": true,
+                "background": "#8eed7e"
+            }
+        },
+        {
+            "DURATA": {
+                "highlighted": true,
+                "background": "#ba87e6"
+            }
+        },
+        {
+            "DATA": {
+                "highlighted": true,
+                "background": "#db747b"
+            }
+        }
+    ]
+}
