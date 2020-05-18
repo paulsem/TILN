@@ -280,6 +280,7 @@ def rulare(debug=False):
     with open("..\\..\\tmp\\dict_export", "w") as fd:
         json.dump(dictionar, fd)
 
+    print(dictionar)
     xml_project.setare_input(input_file)
     xml_project.rulare()
 
