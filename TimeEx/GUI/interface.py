@@ -9,6 +9,25 @@ import tkinter.colorchooser
 import tkinter.filedialog
 import tkinter.messagebox
 
+
+# Unele label uri pot fi editate cu right click -> Edit
+# Elementele pot fi collapsed cu right click -> Collapse si expanded cu right click -> Expand
+# Ctrl + Z - Undo la ultimele edit uri
+# Ctrl + Y - Redo la utimele edit uri
+# File -> Browse : Alege fisier si extrage
+# File -> Save : Salveaza fisierul xml
+# File -> Exit : Close la aplicatie
+# Tools -> Expand all: Da expand la toate elementele colapsed
+# Tools -> Attributes: Se pot alege culorile elementelor si cuvintelor in text cu anumite tipuri si 
+# se poate da toggle la visibilitatea lor
+# Tools -> Preferences: Se poate alege: background ul aplicatiei
+#                                       background ul si foreground ul label urilor
+#                                       fontul si marimea lui pentru label urile visibile
+#                                       fontul si marimea lui pentru label urile collapsed
+#                                       fontul si marimea lui pentru label urile visibile
+
+
+
 tiln_directory = os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0])))
 path_dictionary = {
     "tiln directory": tiln_directory,
