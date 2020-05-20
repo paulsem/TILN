@@ -99,7 +99,7 @@ def importare_dictionar():
     timp_simplu, data_simplu, timp_compus, data_compus = 0, 0, 0, 0
 
     # TimeEx/PARSARE/
-    with open(path + "TimeEx\\PARSARE\\romana.txt", "r") as fd:
+    with open(r"D:\git\TILN\TimeEx\PARSARE\romana.txt", "r") as fd:
         line = fd.readline()
         while line:
             tmp.append(line)
@@ -265,7 +265,7 @@ def convert_to_romana(exp):
 
 def complex_words(text):
     lista = []
-    with open(path + "TimeEx\\PARSARE\\future.txt", "r") as fd:
+    with open(r"D:/git/TILN/TimeEx/PARSARE/future.txt", "r") as fd:
         words = fd.readline()
         verbs = fd.readline()
     for x in words[:-1].split(", "):
@@ -371,10 +371,10 @@ def rulare(debug=False, sutimev=False, xml=True):
             print("Dictionar:\t", dictionar)
 
     if sutimev:
-        with open(path + "tmp\\dict_export_sutime", "w") as fd:
+        with open("D:/git/TILN/tmp/dict_export_sutime", "w") as fd:
             json.dump(dictionar, fd)
     else:
-        with open(path + "tmp\\dict_export", "w") as fd:
+        with open("D:/git/TILN/tmp/dict_export", "w") as fd:
             json.dump(dictionar, fd)
 
     if xml:
@@ -385,7 +385,7 @@ def rulare(debug=False, sutimev=False, xml=True):
 
 
 def sutime_dict():
-    with open(path + "tmp\\dict_export_sutime", "r") as fd:
+    with open("D:/git/TILN/tmp/dict_export_sutime", "r") as fd:
         return json.load(fd)
 
 

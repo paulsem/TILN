@@ -13,14 +13,16 @@ def setare_input(input_file_tmp):
 def rulare():
     with open("..\\..\\tmp\\dict_export", "r") as fd:
         dictionar = json.load(fd)
-    # print("Dictionar :  ", dictionar)
+    print("Dictionar :  ", dictionar)
 
     # split in sentences
     with open(input_file, 'r') as f:
         content = f.read()
         # print(content)
-        sentences = re.split(r'[.?]', str(content))
-        # sentences = content.split(".")
+    sentences = content.split("?.!,")
+    print(sentences)
+    print()
+    # sentences = content.split(".")
     # print("Sentences :  ", sentences)
 
     xml_doc = ET.Element('TimeML')
@@ -51,7 +53,7 @@ def rulare():
                     # print(ok)
 
     tree = ET.ElementTree(xml_doc)
-    tree.write('..\\..\\output\\exemplu.xml', encoding='UTF-8', xml_declaration=True)
+    tree.write('D:/git/TILN/output/exemplu.xml', encoding='UTF-8', xml_declaration=True)
 
 
 if __name__ == '__main__':

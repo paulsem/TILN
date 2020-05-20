@@ -140,7 +140,7 @@ class TextApp(tk.Tk):
             if filename:
                 proiect.setare_input(filename)
                 proiect.rulare(False)
-                self.xml_path = os.path.join(path_dictionary["output directory"], "exemplu.xml")
+                self.xml_path = r"D:\git\TILN\output\exemplu.xml"
                 self.opened_file = filename
                 self.title(f"{TextApp.gui['application title']} - {filename} - {self.xml_path}")
                 with open(self.xml_path) as xml_file:
