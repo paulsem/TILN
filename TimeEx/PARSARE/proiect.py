@@ -1,10 +1,13 @@
 import json
 import re
-import sys
+import os
+from sutime import SUTime
 from TimeEx.XML import xml_project
+from googletrans import Translator
 
 input_file = ""
 dictionar = {}
+path = ""
 
 
 def convertor(num):
@@ -84,7 +87,7 @@ def retezare(lista):
         else:
             for word in item.split(", "):
                 tmp_word = word
-                tmp_word = tmp_word.replace(" ", "")
+                tmp_word = tmp_word.replace(",", "")
                 tmp_word = tmp_word.replace("\n", "")
                 tmp.append(tmp_word)
     return tmp
@@ -96,7 +99,7 @@ def importare_dictionar():
     timp_simplu, data_simplu, timp_compus, data_compus = 0, 0, 0, 0
 
     # TimeEx/PARSARE/
-    with open("romana.txt", "r") as fd:
+    with open(path + "TimeEx\\PARSARE\\romana.txt", "r") as fd:
         line = fd.readline()
         while line:
             tmp.append(line)
@@ -185,9 +188,9 @@ def parsare_simplu(text, timp, data):
         for timp_tmp in timp:
             if line == timp_tmp:
                 timp_simplu.append(line)
-        for data_tmp in data:
-            if line == data_tmp:
-                data_simplu.append(line)
+    for data_tmp in data:
+        if data_tmp in text:
+            data_simplu.append(data_tmp)
     return timp_simplu, data_simplu
 
 
@@ -206,6 +209,10 @@ def parsare_cifre_text(text, cuvinte, cifre="[0-9]{1,2}"):
     for match in re.finditer(pattern, text):
         if match.group(2).lower() in cuvinte:
             cuvinte_gasite.append(match.group())
+    pattern = re.compile(r"([A-Z]*[a-z]+)\s(" + cifre + ")\s")
+    for match in re.finditer(pattern, text):
+        if match.group(1).lower() in cuvinte:
+            cuvinte_gasite.append(match.group())
     return cuvinte_gasite
 
 
@@ -215,13 +222,17 @@ def parsare_cifre_text_complex(text, cuvinte, cifre="[0-9]{1,2}"):
     for match in re.finditer(pattern, text):
         if match.group(3).lower() in cuvinte:
             cuvinte_gasite.append(match.group())
+    pattern = re.compile(r"([A-Z]*[a-z]+)\s(de*)\s(" + cifre + ")")
+    for match in re.finditer(pattern, text):
+        if match.group(1).lower() in cuvinte:
+            cuvinte_gasite.append(match.group())
     return cuvinte_gasite
 
 
 def parsare_luni(text, luni):
     luni_timp = []
     pattern = re.compile(r"luna\s([a-z]{3,10})")
-    for match in re.finditer(pattern, text):
+    for match in re.finditer(pattern, text.lower()):
         if match.group(1).lower() in luni:
             luni_timp.append(match.group())
     return luni_timp
@@ -231,9 +242,14 @@ def adaugare_dict(valoare, tag):
     global dictionar
     if valoare:
         try:
-            [dictionar[tag].append(x) for x in valoare]
+            [dictionar[tag].append(x) for x in valoare if x not in dictionar[tag]]
         except:
             dictionar[tag] = valoare.copy()
+
+
+def merge_dict(dict_primit):
+    global dictionar
+    dictionar = dict_primit
 
 
 def setare_input(input_file_tmp):
@@ -241,55 +257,154 @@ def setare_input(input_file_tmp):
     input_file = input_file_tmp
 
 
-def rulare(debug=False):
+def convert_to_romana(exp):
+    translator = Translator()
+    traducere = translator.translate(exp, src='en', dest="ro").text
+    return traducere
+
+
+def complex_words(text):
+    lista = []
+    with open(path + "TimeEx\\PARSARE\\future.txt", "r") as fd:
+        words = fd.readline()
+        verbs = fd.readline()
+    for x in words[:-1].split(", "):
+        for y in verbs.split(", "):
+            if y.replace("x", x) in text.lower():
+                lista.append(y.replace("x", x))
+    lista_tmp = lista.copy()
+    for x in range(len(lista_tmp)):
+        for y in lista_tmp[x + 1:]:
+            if lista_tmp[x] in y:
+                lista.remove(lista_tmp[x])
+
+    for i in range(2):
+        if i == 0:
+            cifre = "([0-9]+)"
+        if i == 1:
+            cifre = "([MDCLXVI]+)"
+        pattern = re.compile(r"([A-Z]*[a-z]+\s[a-z]+)\s" + cifre)
+        for match in re.finditer(pattern, text):
+            if match.group(1).lower() in lista:
+                lista[lista.index(match.group(1).lower())] = match.group()
+        pattern = re.compile(r"([A-Z]*[a-z]+\s[a-z]+\s[a-z]+)\s" + cifre)
+        for match in re.finditer(pattern, text):
+            if match.group(1).lower() in lista:
+                lista[lista.index(match.group(1).lower())] = match.group()
+
+    return lista
+
+
+def sutime_function(text):
+    translator = Translator()
+    traducere = translator.translate(text, src='ro', dest="en").text
+
+    java_target = path + "TimeEx\\PARSARE\\java\\target"
+    jar_files = os.path.join(os.path.dirname(__file__), java_target)
+    sutime = SUTime(jars=jar_files, mark_time_ranges=True)
+
+    ttext = []
+    ttype = []
+    tmpdictionar = {}
+
+    for x in sutime.parse(traducere):
+        for value, key in x.items():
+            if value == "text":
+                valoare = convert_to_romana(key)
+                ttext.append(valoare)
+            elif value == "type":
+                valoare2 = convert_to_romana(key)
+                ttype.append(valoare2)
+
+    for x in range(len(ttext)):
+        try:
+            tmpdictionar[ttype[x]].append(ttext[x])
+        except:
+            tmpdictionar[ttype[x]] = [ttext[x]]
+
+    return tmpdictionar
+
+
+def rulare(debug=False, sutimev=False, xml=True):
     text = importare_text(input_file)
-    dict_lunile, dict_timp_simplu, dict_data_simplu, dict_timp_complex, dict_data_complex = importare_dictionar()
+    if sutimev:
+        merge_dict(sutime_function(text))
 
-    timp_cifre, data_cifre = parsare_cifre(text)  # 15:30,  02.04.1999
-    timp_simplu, data_simplu = parsare_simplu(text, dict_timp_simplu, dict_data_simplu)  # acuma, marti ieri
-    timp_complex, data_complex = parsare_complex(text, dict_timp_complex, dict_data_complex)  # 7 ore, 20 de luni
-    lunile = parsare_luni(text, dict_lunile)  # luna mai luna iunie
-    lunile2 = parsare_cifre_text(text, dict_lunile)  # 25 aprilie 10 iulie
-    timp_text, data_text = lista_numere(text, dict_timp_complex, dict_data_complex)  # doua ore sapte luni
+        if debug:
+            print()
+            print("Dictionar:\t", dictionar)
 
-    adaugare_dict(timp_cifre, "ORA")
-    adaugare_dict(data_cifre, "DATA")
-    adaugare_dict(timp_simplu, "TIMP_ACTUAL")
-    adaugare_dict(data_simplu, "ZIUA")
-    adaugare_dict(timp_complex, "DURATA")
-    adaugare_dict(data_complex, "DURATA")
-    adaugare_dict(lunile, "LUNA")
-    adaugare_dict(lunile2, "LUNA")
-    adaugare_dict(timp_text, "DURATA")
-    adaugare_dict(data_text, "DURATA")
+    if not sutimev:
+        dict_lunile, dict_timp_simplu, dict_data_simplu, dict_timp_complex, dict_data_complex = importare_dictionar()
 
-    if debug:
-        print(text)
-        print("timp_cifre:\t\t", timp_cifre)
-        print("data_cifre:\t\t", data_cifre)
-        print("timp_simplu:\t", timp_simplu)
-        print("data_simplu:\t", data_simplu)
-        print("timp_complex:\t", timp_complex)
-        print("data_complex:\t", data_complex)
-        print("Lunile:\t\t\t", lunile, lunile2)
-        print("timp_text:\t", timp_text)
-        print("data_text:\t", data_text)
-        print()
-        print("Dictionar:\t", dictionar)
+        timp_cifre, data_cifre = parsare_cifre(text)  # 15:30,  02.04.1999
+        timp_simplu, data_simplu = parsare_simplu(text, dict_timp_simplu, dict_data_simplu)  # acuma, marti ieri
+        timp_complex, data_complex = parsare_complex(text, dict_timp_complex, dict_data_complex)  # 7 ore, 20 de luni
+        lunile = parsare_luni(text, dict_lunile)  # luna mai luna iunie
+        lunile2 = parsare_cifre_text(text, dict_lunile)  # 25 aprilie 10 iulie
+        timp_text, data_text = lista_numere(text, dict_timp_complex, dict_data_complex)  # doua ore sapte luni
+        lista_complex = complex_words(text)
 
-    with open("..\\..\\tmp\\dict_export", "w") as fd:
-        json.dump(dictionar, fd)
+        adaugare_dict(timp_complex, "DURATĂ")
+        adaugare_dict(data_complex, "DATA")
+        adaugare_dict(timp_text, "DURATĂ")
+        adaugare_dict(data_text, "DURATĂ")
+        adaugare_dict(lunile, "DATA")
+        adaugare_dict(lunile2, "DATA")
+        adaugare_dict(data_cifre, "DATA")
+        adaugare_dict(data_simplu, "DATA")
+        adaugare_dict(lista_complex, "DATA")
+        adaugare_dict(timp_cifre, "TIMP")
+        adaugare_dict(timp_simplu, "TIMP")
 
-    print(dictionar)
-    xml_project.setare_input(input_file)
-    xml_project.rulare()
+        if debug:
+            print("timp_cifre:\t\t", timp_cifre)
+            print("data_cifre:\t\t", data_cifre)
+            print("timp_simplu:\t", timp_simplu)
+            print("data_simplu:\t", data_simplu)
+            print("timp_complex:\t", timp_complex)
+            print("data_complex:\t", data_complex)
+            print("Lunile:\t\t\t", lunile, lunile2)
+            print("timp_text:\t", timp_text)
+            print("data_text:\t", data_text)
+            print()
+            print("Dictionar:\t", dictionar)
+
+    if sutimev:
+        with open(path + "tmp\\dict_export_sutime", "w") as fd:
+            json.dump(dictionar, fd)
+    else:
+        with open(path + "tmp\\dict_export", "w") as fd:
+            json.dump(dictionar, fd)
+
+    if xml:
+        xml_project.setare_input(input_file)
+        xml_project.rulare()
+
+    return dictionar
+
+
+def sutime_dict():
+    with open(path + "tmp\\dict_export_sutime", "r") as fd:
+        return json.load(fd)
+
+
+def compare():
+    dictionar_a_nostru = rulare(debug=False, sutimev=False, xml=False)
+    print("Ours")
+    for x, y in dictionar_a_nostru.items():
+        print(f"Gasit pt {x} {len(y)} |", y)
+    print()
+    print("Sutime")
+    dictionar_sutime = sutime_dict()
+    # dictionar_sutime = rulare(debug=False, sutimev=True, xml=False)
+
+    for x, y in dictionar_sutime.items():
+        print(f"Gasit pt {x} {len(y)} |", y)
 
 
 if __name__ == '__main__':
     # raise Exception("Run the app from main.py")
-    setare_input("..\\..\\input\\extract.txt")
-
-
-
-
-    rulare()
+    path = "..\\..\\"
+    setare_input(path + "input\\extract.txt")
+    compare()

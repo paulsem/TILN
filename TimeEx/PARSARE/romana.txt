@@ -5,11 +5,11 @@ ianuarie, februarie, martie, aprilie, mai, iunie, iulie, august, septembrie, oct
 acuma,
 
 luni, marti, miercuri, joi, vineri, sambata, duminica
-alaltaieri, ieri, azi, maine, poimaine
+alaltaieri, ieri, azi, maine, poimaine, sfarsit de an
 
 +
 
-secunda, secunde, minut, minute, ora, ore
+secunda, secunde, minut, minute, ore, ani
 
-zi, zile, saptamana, saptamani, luna, luni, an, ani 
-deceniu, decenii, secol, secole 
+zi, zile, saptamana, saptamani, luna, luni, an, ora, data
+deceniu, decenii, secol, secole

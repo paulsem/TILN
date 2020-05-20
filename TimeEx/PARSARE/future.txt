@@ -1,2 +1,2 @@
-an, anul, anii, anului, secolul, secolele, secolului, deceniu, deceniului, ora
-acest x, x acesta, x urmator, x viitor, x trecut, x trecute, x urmatoare, x urmatori, x viitori, la x, mijlocul x
+an, anul, anii, anului, secolul, secolele, secolului, deceniu, deceniului, saptamana, weekend
+in x, in x al, acest x, x acesta, acum un x, x urmator, primul x, x viitor, x trecut, x trecute, x trecuta, x urmatoare, x urmatori, x viitori, la x, mijlocul x, sfarsitul x
