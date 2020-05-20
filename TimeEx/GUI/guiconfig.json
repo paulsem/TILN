@@ -31,12 +31,11 @@
     "content frame pady": 4,
     "content frame intern padx": 4,
     "content frame intern pady": 4,
-    "wrap": "word",
     "attributes background": [
         {
             "ZIUA": {
-                "highlighted": false,
-                "background": "#ff42d9"
+                "highlighted": true,
+                "background": "#e3b740"
             }
         },
         {
