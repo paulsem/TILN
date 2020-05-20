@@ -1,0 +1,13 @@
+certifi==2020.4.5.1
+chardet==3.0.4
+googletrans==2.4.0
+graphics.py==5.0.1.post1
+idna==2.9
+Interface==2.11.1
+JPype1==0.7.5
+requests==2.23.0
+sutime==0.2.0
+urllib3==1.25.9
+zope.event==4.4
+zope.interface==5.1.0
+zope.schema==6.0.0

@@ -2,6 +2,10 @@ import xml.etree.ElementTree as ET
 import json
 import re
 
+#Se vor parsa datele din dictionar dupa care se va citii textul dintr-un fisier txt ce va fii impartit in propozitii si se vor adauga tagurile corespunzatoare pentru fiecare sectiune. Folosind datele din dictionare identificam diversele elemente temporale din text pe care le incadram in tagul TIMEEX cu valorile corespunzatoare (id, value, type etc).
+
+
+
 input_file = ""
 
 
