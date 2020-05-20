@@ -28,7 +28,7 @@ import tkinter.messagebox
 
 
 
-tiln_directory = os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0])))
+tiln_directory = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 path_dictionary = {
     "tiln directory": tiln_directory,
     "gui directory": os.path.join(tiln_directory, "GUI"),
@@ -249,7 +249,7 @@ class TextView(tk.Frame):
     def set(self, path):
         self.text.configure(state=tk.NORMAL)
         self.text.delete(1.0, tk.END)
-        with open(path, "r") as file_descriptor:
+        with open(path, "r", encoding="utf=8") as file_descriptor:
             self.text.insert(1.0, file_descriptor.read())
             self.highlight_expressions()
         self.text.configure(state=tk.DISABLED)
