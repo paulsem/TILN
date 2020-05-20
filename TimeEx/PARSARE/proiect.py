@@ -78,7 +78,7 @@ def lista_numere(text, timp, data):
 
 
 def importare_text(input_file):
-    with open(input_file, "r") as fd:
+    with open("input\\extract.txt", "r") as fd:
         return fd.read()
 
 
