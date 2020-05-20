@@ -51,7 +51,7 @@ def rulare():
                 if value in i:
                     # print("Value :  ", value)
                     # TIMEEX tag
-                    tag = ET.SubElement(s, 'TIMEEX', id='t' + str(ok), value=value.lower(), type=key, temporalFunction='true',
+                    tag = ET.SubElement(s, 'TIMEEX', id='t' + str(ok), value=value, type=key, temporalFunction='true',
                                         functionInDocument='NONE').text = value
                     ok = ok + 1
                     # print(ok)
