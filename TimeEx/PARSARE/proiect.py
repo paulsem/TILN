@@ -10,6 +10,9 @@ dictionar = {}
 path = ""
 
 
+### Folosim expresii regulate si expresii compuse pentru a extrage expresiile temporale dintr-un text pe care il citim
+
+
 def convertor(num):
     sub20 = ['zero', 'unu', 'doi', 'trei', 'patru', 'cinci', 'sase', 'sapte', 'opt', 'noua', 'zece', 'unsprezece',
              'doisprezece', 'treisprezece', 'paisprezece', 'cincisprezece', 'saisprezece', 'saptesprezece',
@@ -99,7 +102,7 @@ def importare_dictionar():
     timp_simplu, data_simplu, timp_compus, data_compus = 0, 0, 0, 0
 
     # TimeEx/PARSARE/
-    with open(r"D:\git\TILN\TimeEx\PARSARE\romana.txt", "r") as fd:
+    with open(r"TimeEx/PARSARE/romana.txt", "r") as fd:
         line = fd.readline()
         while line:
             tmp.append(line)
@@ -265,7 +268,7 @@ def convert_to_romana(exp):
 
 def complex_words(text):
     lista = []
-    with open(r"D:/git/TILN/TimeEx/PARSARE/future.txt", "r") as fd:
+    with open(r"TimeEx/PARSARE/future.txt", "r") as fd:
         words = fd.readline()
         verbs = fd.readline()
     for x in words[:-1].split(", "):
@@ -345,17 +348,17 @@ def rulare(debug=False, sutimev=False, xml=True):
         timp_text, data_text = lista_numere(text, dict_timp_complex, dict_data_complex)  # doua ore sapte luni
         lista_complex = complex_words(text)
 
-        adaugare_dict(timp_complex, "DURATĂ")
+        adaugare_dict(timp_complex, "DURATA")
         adaugare_dict(data_complex, "DATA")
-        adaugare_dict(timp_text, "DURATĂ")
-        adaugare_dict(data_text, "DURATĂ")
+        adaugare_dict(timp_text, "DURATA")
+        adaugare_dict(data_text, "DURATA")
         adaugare_dict(lunile, "DATA")
         adaugare_dict(lunile2, "DATA")
         adaugare_dict(data_cifre, "DATA")
         adaugare_dict(data_simplu, "DATA")
         adaugare_dict(lista_complex, "DATA")
-        adaugare_dict(timp_cifre, "TIMP")
-        adaugare_dict(timp_simplu, "TIMP")
+        adaugare_dict(timp_cifre, "ORA")
+        adaugare_dict(timp_simplu, "ORA")
 
         if debug:
             print("timp_cifre:\t\t", timp_cifre)
@@ -371,10 +374,10 @@ def rulare(debug=False, sutimev=False, xml=True):
             print("Dictionar:\t", dictionar)
 
     if sutimev:
-        with open("D:/git/TILN/tmp/dict_export_sutime", "w") as fd:
+        with open("tmp/dict_export_sutime", "w") as fd:
             json.dump(dictionar, fd)
     else:
-        with open("D:/git/TILN/tmp/dict_export", "w") as fd:
+        with open("tmp/dict_export", "w") as fd:
             json.dump(dictionar, fd)
 
     if xml:
@@ -385,7 +388,7 @@ def rulare(debug=False, sutimev=False, xml=True):
 
 
 def sutime_dict():
-    with open("D:/git/TILN/tmp/dict_export_sutime", "r") as fd:
+    with open("tmp/dict_export_sutime", "r") as fd:
         return json.load(fd)
 
 
@@ -405,6 +408,5 @@ def compare():
 
 if __name__ == '__main__':
     # raise Exception("Run the app from main.py")
-    path = "..\\..\\"
-    setare_input(path + "input\\extract.txt")
+    setare_input("input\\extract.txt")
     compare()

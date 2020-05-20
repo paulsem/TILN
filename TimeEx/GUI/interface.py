@@ -40,11 +40,12 @@ path_dictionary = {
 
 sys.path = list(set(sys.path + list(path_dictionary.values())))
 
-import proiect
+from TimeEx.PARSARE import proiect
 
 
 def read_config(path=os.path.join(path_dictionary["gui directory"], "guiconfig.json")):
-    with open(path, "r") as file_descriptor:
+
+    with open("TimeEx/GUI/guiconfig.json", "r") as file_descriptor:
         return json.load(file_descriptor)
 
 
@@ -140,7 +141,7 @@ class TextApp(tk.Tk):
             if filename:
                 proiect.setare_input(filename)
                 proiect.rulare(False)
-                self.xml_path = r"D:\git\TILN\output\exemplu.xml"
+                self.xml_path = r"output\exemplu.xml"
                 self.opened_file = filename
                 self.title(f"{TextApp.gui['application title']} - {filename} - {self.xml_path}")
                 with open(self.xml_path) as xml_file:
