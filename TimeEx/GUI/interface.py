@@ -9,7 +9,6 @@ import tkinter.colorchooser
 import tkinter.filedialog
 import tkinter.messagebox
 
-
 # Unele label uri pot fi editate cu right click -> Edit
 # Elementele pot fi collapsed cu right click -> Collapse si expanded cu right click -> Expand
 # Ctrl + Z - Undo la ultimele edit uri
@@ -25,7 +24,6 @@ import tkinter.messagebox
 #                                       fontul si marimea lui pentru label urile visibile
 #                                       fontul si marimea lui pentru label urile collapsed
 #                                       fontul si marimea lui pentru label urile visibile
-
 
 
 tiln_directory = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -44,7 +42,6 @@ from TimeEx.PARSARE import proiect
 
 
 def read_config(path=os.path.join(path_dictionary["gui directory"], "guiconfig.json")):
-
     with open("TimeEx/GUI/guiconfig.json", "r") as file_descriptor:
         return json.load(file_descriptor)
 
@@ -63,33 +60,17 @@ class TextApp(tk.Tk):
         self.xml_path = None
         self.state("zoomed")
         self.option_add("*Font", TextApp.gui["global font"])
-        self.config_menu()
         self.notebook = ttk.Notebook(self)
-        self.notebook.grid(row=0, column=0, sticky="news")
+        self.notebook.grid(row=1, column=0, sticky="news")
         self.view = View(self)
-        self.view.grid(row=0, column=0, pady=5, padx=5, sticky="nswe")
+        self.view.grid(row=0, column=0, pady=5, padx=5, sticky="news")
         self.notebook.add(self.view, text="Xml")
         self.text_view = None
-        self.grid_rowconfigure(0, weight=1)
+        OptionsView(self).grid(row=0, column=0, pady=5, padx=5, sticky="news")
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.config_bind()
         self.mainloop()
-
-    def config_menu(self):
-        menu = tk.Menu(self)
-        file_menu = tk.Menu(menu, tearoff=0)
-        file_menu.add_command(label="Save", command=self.save, font=TextApp.gui["menu font"])
-        file_menu.add_command(label="Browse", command=self.browse, font=TextApp.gui["menu font"])
-        file_menu.add_command(label="Exit", command=self.quit, font=TextApp.gui["menu font"])
-        menu.add_cascade(label="File", menu=file_menu, font=TextApp.gui["menu font"])
-        view_menu = tk.Menu(menu, tearoff=0)
-        view_menu.add_command(label="Attributes", command=self.view_attributes, font=TextApp.gui["menu font"])
-        view_menu.add_command(label="Expand all", command=lambda: self.view.frame.expand_all(),
-                              font=TextApp.gui["menu font"])
-        view_menu.add_command(label="Preferences", command=lambda: PreferencesDialog(self),
-                              font=TextApp.gui["menu font"])
-        menu.add_cascade(label="Tools", menu=view_menu)
-        self.config(menu=menu)
 
     def view_attributes(self):
         AttributesDialog(self)
@@ -147,26 +128,21 @@ class TextApp(tk.Tk):
                 with open(self.xml_path) as xml_file:
                     tree = xml.etree.ElementTree.parse(xml_file)
                     self.display(tree.getroot())
-                    info = []
-                    for attribute in TextApp.gui["attributes background"]:
-                        type_ = list(attribute.keys())[0]
-                        background = attribute[type_]["background"]
-                        highlighted = attribute[type_]["highlighted"]
-                        info.append((type_, highlighted, background))
-                    self.highlight_attributes(info)
+                    self.highlight_attributes()
                 if len(self.notebook.tabs()) == 1:
                     self.text_view = TextView(self)
                     self.notebook.add(self.text_view, text="Text")
                 self.text_view.set(self.opened_file)
-        except Exception as exception:
+        except TypeError as exception:
+
             tkinter.messagebox.showerror("Exception", str(exception))
 
     def set_background(self):
         self.view.canvas.configure(background=TextApp.gui["view background"])
         self.view.frame.set_background()
 
-    def highlight_attributes(self, info):
-        self.view.frame.highlight_attributes(info)
+    def highlight_attributes(self):
+        self.view.frame.highlight_attributes()
         if self.text_view:
             self.text_view.highlight_expressions()
 
@@ -197,10 +173,8 @@ class TextApp(tk.Tk):
                 if attribute == "type":
                     type_ = value.strip()
             background = None
-            for attribute in TextApp.gui["attributes background"]:
-                type__ = list(attribute.keys())[0]
-                if type_ == type__ and attribute[type_]["highlighted"]:
-                    background = attribute[type_]["background"]
+            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_]["highlighted"]:
+                background = TextApp.gui["attributes background"][type_]["background"]
             if None not in (type_, value_, background):
                 texts.append((value_, background))
             texts.extend(TextApp.get_texts_from_contents(info["contents"]))
@@ -218,10 +192,8 @@ class TextApp(tk.Tk):
                 if attribute == "type":
                     type_ = value.strip()
             background = None
-            for attribute in TextApp.gui["attributes background"]:
-                type__ = list(attribute.keys())[0]
-                if type_ == type__ and attribute[type_]["highlighted"]:
-                    background = attribute[type_]["background"]
+            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_]["highlighted"]:
+                background = TextApp.gui["attributes background"][type_]["background"]
             if None not in (type_, value_, background):
                 texts.append((value_, background))
             if content["contents"]:
@@ -232,6 +204,163 @@ class TextApp(tk.Tk):
     def save_config():
         with open(os.path.join(path_dictionary["gui directory"], "guiconfig.json"), "w") as file_descriptor:
             json.dump(TextApp.gui, file_descriptor, indent=4)
+
+    @staticmethod
+    def create_button(master, image, tooltip=None, *args, **kwargs):
+        image = tk.PhotoImage(file=os.path.join(path_dictionary["gui directory"], "icons", image))
+        button = tk.Button(master, image=image, relief=tk.SOLID, *args, **kwargs)
+        button.image = image
+        if tooltip:
+            ToolTip(button, tooltip)
+        return button
+
+
+# sursa: https://stackoverflow.com/a/36221216
+class ToolTip(object):
+
+    def __init__(self, widget, text=None):
+        self.waittime = 500
+        self.wraplength = 180
+        self.widget = widget
+        self.text = text
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+        self.widget.bind("<ButtonPress>", self.leave)
+        self.id = None
+        self.tw = None
+
+    def enter(self, _=None):
+        self.schedule()
+
+    def leave(self, _=None):
+        self.unschedule()
+        self.hidetip()
+
+    def schedule(self):
+        self.unschedule()
+        self.id = self.widget.after(self.waittime, self.showtip)
+
+    def unschedule(self):
+        id = self.id
+        self.id = None
+        if id:
+            self.widget.after_cancel(id)
+
+    def showtip(self, _=None):
+        x, y, cx, cy = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 20
+        self.tw = tk.Toplevel(self.widget)
+        self.tw.wm_overrideredirect(True)
+        self.tw.wm_geometry("+%d+%d" % (x, y))
+        label = tk.Label(self.tw, text=self.text, justify=tk.LEFT, background="#ffffff", relief=tk.RIDGE, borderwidth=2,
+                         wraplength=self.wraplength, font=TextApp.gui["tooltip font"])
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tw
+        self.tw = None
+        if tw:
+            tw.destroy()
+
+
+class OptionsView(tk.Frame):
+
+    def __init__(self, master, *args, **kwargs):
+        tk.Frame.__init__(self, master, *args, **kwargs)
+        self.font_dictionary =  {
+            "Visible xml label font": ("visible label font", self.master.update_visible_label_font),
+            "Collapsed xml label font": ("collapsed label font", self.master.update_collapsed_label_font),
+            "Text font": ("source font", lambda: self.master.text_view.text.configure(font=TextApp.gui["source font"]) if self.master.text_view else False)
+        }
+        TextApp.create_button(self, "open.png", tooltip="Open file and extract from it",
+                              command=self.master.browse).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+        TextApp.create_button(self, "save.png", tooltip="Save",
+                            command=self.master.save).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+        self.add_color_settings("xml background.png", "Change xml background", lambda: self.change_color("view background", self.master.set_background))
+        self.add_color_settings("xml label background.png", "Change xml label background", lambda: self.change_color("label background", self.master.update_labels_background))
+        self.add_color_settings("xml label foreground.png", "Change xml label foreground", lambda: self.change_color("label foreground", self.master.update_labels_foreground))
+        self.add_color_settings("expand.png", "Expand all collapsed labels", self.master.view.frame.expand_all)
+        self.add_separator()
+        self.add_attribute_options("ZIUA")
+        self.add_attribute_options("DURATA")
+        self.add_attribute_options("ORA")
+        self.add_attribute_options("DATA")
+        self.add_separator()
+        self.add_font_settings()
+
+    def add_font_settings(self):
+        font_families = sorted(tkinter.font.families())
+        font_options = list(self.font_dictionary.keys())
+        self.choose_font_combobox = ttk.Combobox(self, values=font_options, state="readonly", width=max(map(lambda _: len(_), font_options)))
+        self.choose_font_combobox.grid(row=0, column=len(self.winfo_children()), padx=3)
+        self.choose_font_combobox.bind("<<ComboboxSelected>>", self.show_font)
+        self.choose_font_combobox.set(font_options[0])
+        self.choose_font_combobox.unbind_class("TCombobox", "<MouseWheel>")
+        self.choose_family_combobox = ttk.Combobox(self, values=font_families, state="readonly", width=20)
+        self.choose_family_combobox.bind("<<ComboboxSelected>>", self.change_font)
+        self.choose_family_combobox.set(TextApp.gui[self.font_dictionary[self.choose_font_combobox.get()][0]][0])
+        self.choose_family_combobox.grid(row=0, column=len(self.winfo_children()), padx=3)
+        self.choose_size_combobox = ttk.Combobox(self, values=list(range(8, 41)), state="readonly", width=2)
+        self.choose_size_combobox.bind("<<ComboboxSelected>>", self.change_font)
+        self.choose_size_combobox.set(TextApp.gui[self.font_dictionary[self.choose_font_combobox.get()][0]][1])
+        self.choose_size_combobox.grid(row=0, column=len(self.winfo_children()), padx=3)
+
+    def change_font(self, _):
+        font_family = self.choose_family_combobox.get()
+        font_size = self.choose_size_combobox.get()
+        key, method = self.font_dictionary[self.choose_font_combobox.get()]
+        TextApp.gui[key] = (font_family, font_size)
+        self.master.save_config()
+        method()
+
+    def show_font(self, _):
+        font = TextApp.gui[self.font_dictionary[self.choose_font_combobox.get()][0]]
+        self.choose_family_combobox.set(font[0])
+        self.choose_size_combobox.set(font[1])
+
+    def change_color(self, key, method):
+        _, color = tkinter.colorchooser.askcolor()
+        if color:
+            TextApp.gui[key] = color
+            method()
+            TextApp.save_config()
+
+    def add_attribute_options(self, attribute):
+        tk.Label(self, text=attribute).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+        background = TextApp.gui["attributes background"][attribute]["background"]
+        button = TextApp.create_button(self, "palette.png", tooltip="Change background", background=background, width=64, activebackground=background)
+        button.configure(command=lambda: self.change_attribute_color(button))
+        children_count = len(self.winfo_children())
+        button.grid(row=0, column=children_count + 1, sticky="w", padx=3)
+        button.type_ = attribute
+        variable = tk.BooleanVar()
+        variable.set(TextApp.gui["attributes background"][attribute]["highlighted"])
+        checkbutton = tk.Checkbutton(self, var=variable, command=lambda: self.toggle_attributes(button))
+        checkbutton.variable = variable
+        checkbutton.grid(row=0, column=children_count, sticky="w", padx=3)
+        ToolTip(checkbutton, "Toggle visibility")
+        button.checkbutton = checkbutton
+
+    def add_color_settings(self, image, tooltip, command):
+        TextApp.create_button(self, image, tooltip=tooltip, command=command).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+
+    def add_separator(self):
+        tkinter.ttk.Separator(self, orient=tk.VERTICAL).grid(row=0, column=len(self.winfo_children()), sticky='ns')
+
+    def toggle_attributes(self, button):
+        type_ = button.type_
+        dictionary = TextApp.gui["attributes background"][type_]
+        dictionary["highlighted"] = button.checkbutton.variable.get()
+        dictionary["background"] = button.cget("background")
+        TextApp.save_config()
+        self.master.highlight_attributes()
+
+    def change_attribute_color(self, button):
+        _, color = tkinter.colorchooser.askcolor()
+        if color:
+            button.configure(background=color)
+            self.toggle_attributes(button)
 
 
 class TextView(tk.Frame):
@@ -298,23 +427,18 @@ class ContentFrame(tk.Frame):
             if frame:
                 frame.configure(background=background)
 
-    def highlight_attributes(self, info):
+    def highlight_attributes(self):
         if self.header_frame:
             header_frame_type = self.header_frame.get_type()
-            if not header_frame_type:
+            if header_frame_type in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][header_frame_type]["highlighted"]:
+                self.highlight(TextApp.gui["attributes background"][header_frame_type]["background"])
+                self.is_highlighted = True
+            else:
                 self.reset()
-            for type_, highlight, background in info:
-                if header_frame_type == type_:
-                    if highlight:
-                        self.highlight(background)
-                        self.is_highlighted = True
-                    else:
-                        self.reset()
-                        self.is_highlighted = False
-                    break
+                self.is_highlighted = False
             for child in self.winfo_children():
                 if type(child) is ContentFrame:
-                    child.highlight_attributes(info)
+                    child.highlight_attributes()
 
     def display_node(self, node, padx=TextApp.gui["content frame padx"], pady=TextApp.gui["content frame pady"],
                      do_grid=True):
@@ -553,343 +677,6 @@ class Dialog(tk.Toplevel):
 
     def apply(self):
         pass
-
-
-class AttributesDialog(Dialog):
-
-    def __init__(self, parent, title="Attributes"):
-        self.info = []
-        Dialog.__init__(self, parent, title, buttons_space=False)
-
-    def create_body(self):
-        self.frame = tk.LabelFrame(self.body, text="Attributes")
-        self.frame.grid(row=0, column=0, sticky="news", padx=5, pady=5)
-        i = 0
-        for attribute in TextApp.gui["attributes background"]:
-            type_ = list(attribute.keys())[0]
-            background = attribute[type_]["background"]
-            highlighted = attribute[type_]["highlighted"]
-            tk.Label(self.frame, text=type_).grid(row=i, column=0, padx=32, pady=8)
-            variable = tk.BooleanVar()
-            variable.set(highlighted)
-            checkbutton = tk.Checkbutton(self.frame, var=variable, command=self.toggle)
-            checkbutton.variable = variable
-            checkbutton.grid(row=i, column=1, padx=32, pady=8)
-            label = tk.Label(self.frame, text=" " * 15, background=background, relief=tk.RIDGE, borderwidth=4)
-            label.grid(row=i, column=2, padx=32, pady=8)
-            label.type_ = type_
-            label.bind("<Button-1>", self.change_color)
-            self.frame.grid_rowconfigure(i, weight=1)
-            self.info.append((checkbutton, label))
-            i += 1
-        tk.Button(self.frame, text="Set default", command=self.set_default, relief=tk.RIDGE,
-                  borderwidth=4).grid(row=i, column=2, padx=10, pady=10)
-        self.frame.grid_rowconfigure(i, weight=1)
-        for i in (0, 1, 2):
-            self.frame.grid_columnconfigure(i, weight=1)
-        self.body.grid_rowconfigure(0, weight=1)
-        self.body.grid_columnconfigure(0, weight=1)
-        return self.body
-
-    def toggle(self):
-        info = []
-        TextApp.gui["attributes background"] = []
-        for checkbutton, label in self.info:
-            type_ = label.type_
-            highlighted = checkbutton.variable.get()
-            background = label.cget("background")
-            TextApp.gui["attributes background"].append({type_: {
-                "highlighted": highlighted,
-                "background": background
-            }})
-            info.append((type_, highlighted, background))
-            TextApp.save_config()
-        self.parent.highlight_attributes(
-            list(map(lambda _: (_[1].type_, _[0].variable.get(), _[1].cget("background")), self.info)))
-
-    def set_default(self):
-        default = {
-            "ZIUA": {
-                "highlighted": True,
-                "background": "#e3b740"
-            },
-            "ORA": {
-                "highlighted": True,
-                "background": "#8eed7e"
-            },
-            "DURATA": {
-                "highlighted": True,
-                "background": "#ba87e6"
-            },
-            "DATA": {
-                "highlighted": True,
-                "background": "#db747b"
-            }
-        }
-        for checkbutton, label in self.info:
-            highlighted = default[label.type_]["highlighted"]
-            background = default[label.type_]["background"]
-            if highlighted:
-                checkbutton.select()
-            else:
-                checkbutton.deselect()
-            label.configure(background=background)
-        self.toggle()
-
-    def change_color(self, event):
-        _, color = tkinter.colorchooser.askcolor()
-        if color:
-            event.widget.configure(background=color)
-            self.toggle()
-
-    def create_buttons(self):
-        pass
-
-
-class PreferencesDialog(Dialog):
-
-    def __init__(self, parent, title="Preferences"):
-        self.label_frame = self.control_panel = self.options_panel = None
-        Dialog.__init__(self, parent, title, buttons_space=False)
-
-    def create_body(self):
-        self.label_frame = tk.LabelFrame(self.body, text="Preferences")
-        self.control_panel = PreferencesControlPanel(self.label_frame, self.parent)
-        self.options_panel = PreferencesOptionsPanel(self.label_frame, control_panel=self.control_panel)
-        self.label_frame.grid(sticky="nsew", padx=5, pady=5)
-        self.options_panel.grid(row=0, column=0, padx=5, pady=5, sticky="nsw")
-        self.control_panel.grid(row=0, column=1, padx=5, pady=5, sticky="nswe")
-        self.label_frame.grid_rowconfigure(0, weight=1)
-        self.label_frame.grid_columnconfigure(1, weight=1)
-        self.body.grid_rowconfigure(0, weight=1)
-        self.body.grid_columnconfigure(0, weight=1)
-        self.bind("<MouseWheel>", lambda _: self.parent.set_dialog_open())
-        return self.body
-
-    def create_buttons(self):
-        pass
-
-
-class PreferencesOptionsPanel(tk.LabelFrame):
-
-    def __init__(self, master, control_panel, *args, **kwargs):
-        tk.LabelFrame.__init__(self, master, text="Options", background="white", *args, **kwargs)
-        label = self.add_label("Color", True)
-        self.add_label("Font")
-        self.last_highlighted = label
-        self.control_panel = control_panel
-        self.grid_columnconfigure(0, weight=1)
-
-    def add_label(self, text, highlighted=False):
-        label = tk.Label(self, text=text)
-        if highlighted:
-            label.configure(background="lightgray")
-        else:
-            label.configure(background="white")
-        label.grid(row=len(self.winfo_children()), column=0, sticky="new")
-        label.bind("<Button-1>", self.click)
-        return label
-
-    def click(self, event):
-        label = event.widget
-        if self.last_highlighted:
-            self.last_highlighted.configure(background=label.cget("background"))
-        label.configure(background="lightgray")
-        self.last_highlighted = label
-        self.control_panel.show(label.cget("text"))
-
-
-class PreferencesControlPanel(tk.Frame):
-
-    def __init__(self, master, application, *args, **kwargs):
-        tk.Frame.__init__(self, master, *args, **kwargs)
-        self.grid_propagate(False)
-        self.color_panel = ColorPanel(self, application)
-        self.font_panel = FontPanel(self, application)
-        widths, heights = [], []
-        for panel in (self.font_panel, self.color_panel):
-            if type(panel) is ColorPanel:
-                self.font_panel.grid_remove()
-            panel.grid(row=0, column=0, sticky="news")
-            panel.update_idletasks()
-            heights.append(panel.winfo_height())
-            widths.append(panel.winfo_width())
-        self.configure(width=max(widths), height=max(heights))
-        self.last = self.color_panel
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-    def show(self, panel_name):
-        if self.last.panel_name != panel_name:
-            self.last.grid_remove()
-            for child in self.winfo_children():
-                if child.panel_name == panel_name:
-                    child.grid(row=0, column=0, sticky="news")
-                    self.last = child
-                    break
-
-
-class ColorPanel(tk.LabelFrame):
-
-    def __init__(self, master, application, panel_name="Color", *args, **kwargs):
-        tk.LabelFrame.__init__(self, master, text="Color", background="white", *args, **kwargs)
-        self.panel_name = panel_name
-        self.application = application
-        tk.Label(self, text="Change the background of the application",
-                 background=self.cget("background")).grid(row=0, column=0, padx=10, pady=10)
-        self.view_background_label = tk.Label(self, text=" " * 15, background=TextApp.gui["view background"],
-                                              relief=tk.RIDGE, borderwidth=4)
-        self.view_background_label.grid(row=0, column=1, padx=10, pady=10)
-        self.view_background_label.bind("<Button-1>", self.change_background)
-        tk.Label(self, text="Change the background of the labels", background=self.cget("background")).grid(row=1,
-                                                                                                            column=0,
-                                                                                                            padx=10,
-                                                                                                            pady=10)
-        self.label_background = tk.Label(self, text=" " * 15, background=TextApp.gui["label background"],
-                                         relief=tk.RIDGE, borderwidth=4)
-        self.label_background.grid(row=1, column=1, padx=10, pady=10)
-        self.label_background.bind("<Button-1>", self.change_label_background)
-        tk.Label(self, text="Change the foreground of the labels", background=self.cget("background")).grid(row=2,
-                                                                                                            column=0,
-                                                                                                            padx=10,
-                                                                                                            pady=10)
-        self.label_foreground = tk.Label(self, text=" " * 15, background=TextApp.gui["label foreground"],
-                                         relief=tk.RIDGE, borderwidth=4)
-        self.label_foreground.grid(row=2, column=1, padx=10, pady=10)
-        self.label_foreground.bind("<Button-1>", self.change_label_foreground)
-        tk.Button(self, text="Set default", command=self.set_default, relief=tk.RIDGE, borderwidth=4).grid(row=3,
-                                                                                                           column=1,
-                                                                                                           padx=10,
-                                                                                                           pady=10)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-
-    def change_background(self, _):
-        _, color = tkinter.colorchooser.askcolor()
-        if color:
-            TextApp.gui["view background"] = color
-            self.view_background_label.configure(background=color)
-            self.application.set_background()
-            TextApp.save_config()
-
-    def change_label_background(self, _):
-        _, color = tkinter.colorchooser.askcolor()
-        if color:
-            TextApp.gui["label background"] = color
-            self.label_background.configure(background=color)
-            self.application.update_labels_background()
-            TextApp.save_config()
-
-    def change_label_foreground(self, _):
-        _, color = tkinter.colorchooser.askcolor()
-        if color:
-            TextApp.gui["label foreground"] = color
-            self.label_foreground.configure(background=color)
-            self.application.update_labels_foreground()
-            TextApp.save_config()
-
-    def set_default(self):
-        TextApp.gui["view background"] = "lightblue"
-        TextApp.gui["label background"] = "lavender"
-        TextApp.gui["label foreground"] = "black"
-        self.view_background_label.configure(background=TextApp.gui["view background"])
-        self.label_background.configure(background=TextApp.gui["label background"])
-        self.label_foreground.configure(background=TextApp.gui["label foreground"])
-        self.application.set_background()
-        self.application.update_labels_background()
-        self.application.update_labels_foreground()
-        TextApp.save_config()
-
-
-class FontPanel(tk.LabelFrame):
-
-    def __init__(self, master, application, panel_name="Font", *args, **kwargs):
-        tk.LabelFrame.__init__(self, master, text="Font", background="white", *args, **kwargs)
-        self.panel_name = panel_name
-        self.application = application
-        font_families = sorted(tkinter.font.families())
-        tk.Label(self, text="Change the visible labels font", background=self.cget("background")).grid(row=0,
-                                                                                                       column=0,
-                                                                                                       padx=10, pady=10)
-        self.visible_label_font_combobox = ttk.Combobox(self, values=font_families, state="readonly")
-        self.visible_label_font_combobox.set(TextApp.gui["visible label font"][0])
-        self.visible_label_font_combobox.bind("<<ComboboxSelected>>", self.change_visible_label_font)
-        self.visible_label_font_combobox.unbind_class("TCombobox", "<MouseWheel>")
-        self.visible_label_font_combobox.grid(row=0, column=1, padx=10, pady=10)
-        tk.Label(self, text="Change the visible labels font size", background=self.cget("background")).grid(row=1,
-                                                                                                            column=0,
-                                                                                                            padx=10,
-                                                                                                            pady=10)
-        self.visible_label_font_size_combobox = ttk.Combobox(self, values=[_ for _ in range(8, 41)], state="readonly")
-        self.visible_label_font_size_combobox.set(TextApp.gui["visible label font"][1])
-        self.visible_label_font_size_combobox.bind("<<ComboboxSelected>>", self.change_visible_label_font)
-        self.visible_label_font_size_combobox.grid(row=1, column=1, padx=10, pady=10)
-        tk.Label(self, text="Change the collapsed labels font", background=self.cget("background")).grid(row=2,
-                                                                                                         column=0,
-                                                                                                         padx=10,
-                                                                                                         pady=10)
-        self.collapsed_label_font_combobox = ttk.Combobox(self, values=font_families, state="readonly")
-        self.collapsed_label_font_combobox.set(TextApp.gui["collapsed label font"][0])
-        self.collapsed_label_font_combobox.bind("<<ComboboxSelected>>", self.change_collapsed_label_font)
-        self.collapsed_label_font_combobox.grid(row=2, column=1, padx=10, pady=10)
-        tk.Label(self, text="Change the collapsed labels font size", background=self.cget("background")).grid(row=3,
-                                                                                                              column=0,
-                                                                                                              padx=10,
-                                                                                                              pady=10)
-        self.collapsed_label_font_size_combobox = ttk.Combobox(self, values=[_ for _ in range(8, 41)], state="readonly")
-        self.collapsed_label_font_size_combobox.set(TextApp.gui["collapsed label font"][1])
-        self.collapsed_label_font_size_combobox.bind("<<ComboboxSelected>>", self.change_collapsed_label_font)
-        self.collapsed_label_font_size_combobox.grid(row=3, column=1, padx=10, pady=10)
-        tk.Label(self, text="Change the source font", background=self.cget("background")).grid(row=4, column=0,
-                                                                                               padx=10, pady=10)
-        self.source_font_combobox = ttk.Combobox(self, values=font_families, state="readonly")
-        self.source_font_combobox.set(TextApp.gui["source font"][0])
-        self.source_font_combobox.bind("<<ComboboxSelected>>", self.change_source_font)
-        self.source_font_combobox.grid(row=4, column=1, padx=10, pady=10)
-        tk.Label(self, text="Change the source font size", background=self.cget("background")).grid(row=5, column=0,
-                                                                                                    padx=10, pady=10)
-        self.source_font_size_combobox = ttk.Combobox(self, values=[_ for _ in range(8, 41)], state="readonly")
-        self.source_font_size_combobox.set(TextApp.gui["source font"][1])
-        self.source_font_size_combobox.bind("<<ComboboxSelected>>", self.change_source_font)
-        self.source_font_size_combobox.grid(row=5, column=1, padx=10, pady=10)
-        tk.Button(self, text="Set default", command=self.set_default, relief=tk.RIDGE, borderwidth=4).grid(row=6,
-                                                                                                           column=1,
-                                                                                                           padx=10,
-                                                                                                           pady=10)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-
-    def change_visible_label_font(self, _=None):
-        TextApp.gui["visible label font"] = [self.visible_label_font_combobox.get(),
-                                             self.visible_label_font_size_combobox.get()]
-        self.application.update_visible_label_font()
-        TextApp.save_config()
-
-    def change_collapsed_label_font(self, _=None):
-        TextApp.gui["collapsed label font"] = [self.collapsed_label_font_combobox.get(),
-                                               self.collapsed_label_font_size_combobox.get()]
-        self.application.update_collapsed_label_font()
-        TextApp.save_config()
-
-    def change_source_font(self, _=None):
-        TextApp.gui["source font"] = [self.source_font_combobox.get(), self.source_font_size_combobox.get()]
-        self.application.text_view.text.configure(font=TextApp.gui["source font"])
-        TextApp.save_config()
-
-    def set_default(self):
-        TextApp.gui["visible label font"] = ("Consolas", 12)
-        TextApp.gui["collapsed label font"] = ("Consolas", 8)
-        TextApp.gui["source font"] = ("Consolas", 11)
-        self.visible_label_font_combobox.set(TextApp.gui["visible label font"][0])
-        self.visible_label_font_size_combobox.set(TextApp.gui["visible label font"][1])
-        self.collapsed_label_font_combobox.set(TextApp.gui["collapsed label font"][0])
-        self.collapsed_label_font_size_combobox.set(TextApp.gui["collapsed label font"][1])
-        self.source_font_combobox.set(TextApp.gui["source font"][0])
-        self.source_font_size_combobox.set(TextApp.gui["source font"][1])
-        self.application.update_visible_label_font()
-        self.application.update_collapsed_label_font()
-        self.application.text_view.text.configure(font=TextApp.gui["source font"])
-        TextApp.save_config()
 
 
 class EditDialog(Dialog):
