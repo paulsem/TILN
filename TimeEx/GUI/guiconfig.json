@@ -4,7 +4,7 @@
         "Consolas",
         12
     ],
-    "view background": "lightblue",
+    "view background": "#5cfc45",
     "visible label font": [
         "Consolas",
         12
@@ -21,8 +21,8 @@
         "Consolas",
         8
     ],
-    "label background": "lavender",
-    "label foreground": "black",
+    "label background": "#ff4242",
+    "label foreground": "#5671eb",
     "content frame padx": 50,
     "content frame pady": 4,
     "content frame intern padx": 4,

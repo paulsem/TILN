@@ -173,7 +173,8 @@ class TextApp(tk.Tk):
                 if attribute == "type":
                     type_ = value.strip()
             background = None
-            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_]["highlighted"]:
+            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_][
+                "highlighted"]:
                 background = TextApp.gui["attributes background"][type_]["background"]
             if None not in (type_, value_, background):
                 texts.append((value_, background))
@@ -192,7 +193,8 @@ class TextApp(tk.Tk):
                 if attribute == "type":
                     type_ = value.strip()
             background = None
-            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_]["highlighted"]:
+            if type_ in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][type_][
+                "highlighted"]:
                 background = TextApp.gui["attributes background"][type_]["background"]
             if None not in (type_, value_, background):
                 texts.append((value_, background))
@@ -268,18 +270,24 @@ class OptionsView(tk.Frame):
 
     def __init__(self, master, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
-        self.font_dictionary =  {
+        self.font_dictionary = {
             "Visible xml label font": ("visible label font", self.master.update_visible_label_font),
             "Collapsed xml label font": ("collapsed label font", self.master.update_collapsed_label_font),
-            "Text font": ("source font", lambda: self.master.text_view.text.configure(font=TextApp.gui["source font"]) if self.master.text_view else False)
+            "Text font": ("source font", lambda: self.master.text_view.text.configure(
+                font=TextApp.gui["source font"]) if self.master.text_view else False)
         }
         TextApp.create_button(self, "open.png", tooltip="Open file and extract from it",
-                              command=self.master.browse).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+                              command=self.master.browse).grid(row=0, column=len(self.winfo_children()), sticky="w",
+                                                               padx=3)
         TextApp.create_button(self, "save.png", tooltip="Save",
-                            command=self.master.save).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
-        self.add_color_settings("xml background.png", "Change xml background", lambda: self.change_color("view background", self.master.set_background))
-        self.add_color_settings("xml label background.png", "Change xml label background", lambda: self.change_color("label background", self.master.update_labels_background))
-        self.add_color_settings("xml label foreground.png", "Change xml label foreground", lambda: self.change_color("label foreground", self.master.update_labels_foreground))
+                              command=self.master.save).grid(row=0, column=len(self.winfo_children()), sticky="w",
+                                                             padx=3)
+        self.add_color_settings("xml background.png", "Change xml background",
+                                lambda: self.change_color("view background", self.master.set_background))
+        self.add_color_settings("xml label background.png", "Change xml label background",
+                                lambda: self.change_color("label background", self.master.update_labels_background))
+        self.add_color_settings("xml label foreground.png", "Change xml label foreground",
+                                lambda: self.change_color("label foreground", self.master.update_labels_foreground))
         self.add_color_settings("expand.png", "Expand all collapsed labels", self.master.view.frame.expand_all)
         self.add_separator()
         self.add_attribute_options("ZIUA")
@@ -292,7 +300,8 @@ class OptionsView(tk.Frame):
     def add_font_settings(self):
         font_families = sorted(tkinter.font.families())
         font_options = list(self.font_dictionary.keys())
-        self.choose_font_combobox = ttk.Combobox(self, values=font_options, state="readonly", width=max(map(lambda _: len(_), font_options)))
+        self.choose_font_combobox = ttk.Combobox(self, values=font_options, state="readonly",
+                                                 width=max(map(lambda _: len(_), font_options)))
         self.choose_font_combobox.grid(row=0, column=len(self.winfo_children()), padx=3)
         self.choose_font_combobox.bind("<<ComboboxSelected>>", self.show_font)
         self.choose_font_combobox.set(font_options[0])
@@ -329,7 +338,8 @@ class OptionsView(tk.Frame):
     def add_attribute_options(self, attribute):
         tk.Label(self, text=attribute).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
         background = TextApp.gui["attributes background"][attribute]["background"]
-        button = TextApp.create_button(self, "palette.png", tooltip="Change background", background=background, width=64, activebackground=background)
+        button = TextApp.create_button(self, "palette.png", tooltip="Change background", background=background,
+                                       width=64, activebackground=background)
         button.configure(command=lambda: self.change_attribute_color(button))
         children_count = len(self.winfo_children())
         button.grid(row=0, column=children_count + 1, sticky="w", padx=3)
@@ -343,7 +353,9 @@ class OptionsView(tk.Frame):
         button.checkbutton = checkbutton
 
     def add_color_settings(self, image, tooltip, command):
-        TextApp.create_button(self, image, tooltip=tooltip, command=command).grid(row=0, column=len(self.winfo_children()), sticky="w", padx=3)
+        TextApp.create_button(self, image, tooltip=tooltip, command=command).grid(row=0,
+                                                                                  column=len(self.winfo_children()),
+                                                                                  sticky="w", padx=3)
 
     def add_separator(self):
         tkinter.ttk.Separator(self, orient=tk.VERTICAL).grid(row=0, column=len(self.winfo_children()), sticky='ns')
@@ -430,7 +442,8 @@ class ContentFrame(tk.Frame):
     def highlight_attributes(self):
         if self.header_frame:
             header_frame_type = self.header_frame.get_type()
-            if header_frame_type in TextApp.gui["attributes background"] and TextApp.gui["attributes background"][header_frame_type]["highlighted"]:
+            if header_frame_type in TextApp.gui["attributes background"] and \
+                    TextApp.gui["attributes background"][header_frame_type]["highlighted"]:
                 self.highlight(TextApp.gui["attributes background"][header_frame_type]["background"])
                 self.is_highlighted = True
             else:

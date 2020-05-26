@@ -10,7 +10,7 @@ dictionar = {}
 path = ""
 
 
-### Folosim expresii regulate si expresii compuse pentru a extrage expresiile temporale dintr-un text pe care il citim
+# Folosim expresii regulate si expresii compuse pentru a extrage expresiile temporale dintr-un text pe care il citim
 
 
 def convertor(num):
@@ -302,7 +302,7 @@ def sutime_function(text):
     translator = Translator()
     traducere = translator.translate(text, src='ro', dest="en").text
 
-    java_target = path + "TimeEx\\PARSARE\\java\\target"
+    java_target = "java\\target"
     jar_files = os.path.join(os.path.dirname(__file__), java_target)
     sutime = SUTime(jars=jar_files, mark_time_ranges=True)
 
@@ -329,6 +329,8 @@ def sutime_function(text):
 
 
 def rulare(debug=False, sutimev=False, xml=True):
+    global dictionar
+    dictionar = {}
     text = importare_text(input_file)
     if sutimev:
         merge_dict(sutime_function(text))
@@ -392,17 +394,19 @@ def sutime_dict():
         return json.load(fd)
 
 
-def compare():
-    dictionar_a_nostru = rulare(debug=False, sutimev=False, xml=False)
-    print("Ours")
-    for x, y in dictionar_a_nostru.items():
-        print(f"Gasit pt {x} {len(y)} |", y)
-    print()
-    print("Sutime")
-    dictionar_sutime = sutime_dict()
-    # dictionar_sutime = rulare(debug=False, sutimev=True, xml=False)
-
+def compare(sutimev=False):
+    if sutimev:
+        dictionar_sutime = rulare(debug=False, sutimev=sutimev, xml=False)
+    else:
+        dictionar_sutime = sutime_dict()
+    print("\nComparing the 2 functions\n")
+    print("Sutime - Keep in mind that the text has been translated from Romanian to English and back to Romanian")
     for x, y in dictionar_sutime.items():
+        print(f"Gasit pt {x} {len(y)} |", y)
+
+    dictionar_a_nostru = rulare(debug=False, sutimev=False, xml=False)
+    print("\nOurs")
+    for x, y in dictionar_a_nostru.items():
         print(f"Gasit pt {x} {len(y)} |", y)
 
 
